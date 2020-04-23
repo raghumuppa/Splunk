@@ -1,7 +1,7 @@
 <form>
   <label>AWS_WAF</label>
   <search id="base_search">
-    <query>index="aws-waf" | table action,httpRequest.country,httpRequest.clientIp,httpRequest.httpVersion,uri_query,httpRequest.httpMethod,date_mday,date_month,date_year,http_user_agent</query>
+    <query>index="aws-waf" | table action,httpRequest.country,httpRequest.clientIp,httpRequest.httpVersion,url,uri_query,httpRequest.httpMethod,date_mday,date_month,date_year,http_user_agent</query>
   </search>
   <fieldset submitButton="true" autoRun="true">
     <input type="dropdown" token="country" searchWhenChanged="true">
@@ -18,7 +18,7 @@
     <input type="dropdown" token="client_ip" searchWhenChanged="true">
       <label>Client IP's</label>
       <search base="base_search">
-        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$blocked_ip$" | stats count by httpRequest.clientIp</query>
+        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$blocked_ip$" | dedup httpRequest.clientIp | stats count by httpRequest.clientIp</query>
       </search>
       <fieldForLabel>httpRequest.clientIp</fieldForLabel>
       <fieldForValue>httpRequest.clientIp</fieldForValue>
@@ -29,13 +29,20 @@
     <input type="dropdown" token="blocked_ip" searchWhenChanged="true">
       <label>Blocked IP's</label>
       <search base="base_search">
-        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$client_ip$" | spath action | search action=BLOCK</query>
+        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$client_ip$" | spath action | dedup httpRequest.clientIp | search action=BLOCK</query>
       </search>
       <fieldForLabel>httpRequest.clientIp</fieldForLabel>
       <fieldForValue>httpRequest.clientIp</fieldForValue>
       <choice value="*">ALL</choice>
       <initialValue>*</initialValue>
       <default>*</default>
+    </input>
+    <input type="time" token="time" searchWhenChanged="true">
+      <label>Quick select</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
     </input>
   </fieldset>
   <row>
@@ -50,7 +57,7 @@
         <option name="mapping.choroplethLayer.colorMode">categorical</option>
         <option name="mapping.choroplethLayer.showBorder">1</option>
         <option name="mapping.legend.placement">bottomright</option>
-        <option name="mapping.map.center">(0,0)</option>
+        <option name="mapping.map.center">(28,50)</option>
         <option name="mapping.map.scrollZoom">0</option>
         <option name="mapping.map.zoom">2</option>
         <option name="mapping.markerLayer.markerMaxSize">40</option>
@@ -107,6 +114,17 @@
         <option name="charting.drilldown">none</option>
         <option name="charting.legend.placement">right</option>
       </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Statistics Table</title>
+        <search base="base_search">
+          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$" | table action,httpRequest.country,httpRequest.clientIp,url,httpRequest.httpMethod,date_mday,date_month,date_year|</query>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
     </panel>
   </row>
 </form>
