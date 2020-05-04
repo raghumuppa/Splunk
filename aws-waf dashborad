@@ -1,130 +1,110 @@
 <form>
-  <label>AWS_WAF</label>
+  <label>Aws-Waf</label>
   <search id="base_search">
-    <query>index="aws-waf" | table action,httpRequest.country,httpRequest.clientIp,httpRequest.httpVersion,url,uri_query,httpRequest.httpMethod,date_mday,date_month,date_year,http_user_agent</query>
+    <query>index="aws-waf" | table action,httpRequest.country,httpRequest.clientIp,httpRequest.httpVersion,url,uri_query,httpRequest.httpMethod,date_hour,date_minute,date_second,date_mday,date_month,date_year,http_user_agent
+    | eval full_date = date_mday."/".date_month."/".date_year
+    | eval full_time = date_hour.":".date_minute.":".date_second</query>
+    <earliest>$time.earliest$</earliest>
+    <latest>$time.latest$</latest>
   </search>
   <fieldset submitButton="true" autoRun="true">
     <input type="dropdown" token="country" searchWhenChanged="true">
       <label>Country</label>
-      <search base="base_search">
-        <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" | stats count by httpRequest.country</query>
-      </search>
+      <choice value="*">ALL</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
       <fieldForLabel>httpRequest.country</fieldForLabel>
       <fieldForValue>httpRequest.country</fieldForValue>
-      <choice value="*">ALL</choice>
-      <initialValue>*</initialValue>
-      <default>*</default>
+      <search base="base_search">
+        <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" | stats count by httpRequest.country</query>
+        <earliest>0</earliest>
+        <latest></latest>
+      </search>
     </input>
     <input type="dropdown" token="client_ip" searchWhenChanged="true">
       <label>Client IP's</label>
-      <search base="base_search">
-        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$blocked_ip$" | dedup httpRequest.clientIp | stats count by httpRequest.clientIp</query>
-      </search>
+      <choice value="*">ALL</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
       <fieldForLabel>httpRequest.clientIp</fieldForLabel>
       <fieldForValue>httpRequest.clientIp</fieldForValue>
-      <choice value="*">ALL</choice>
-      <initialValue>*</initialValue>
-      <default>*</default>
+      <search base="base_search">
+        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$blocked_ip$" | dedup httpRequest.clientIp | stats count by httpRequest.clientIp</query>
+        <earliest>0</earliest>
+        <latest></latest>
+      </search>
     </input>
     <input type="dropdown" token="blocked_ip" searchWhenChanged="true">
       <label>Blocked IP's</label>
-      <search base="base_search">
-        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$client_ip$" | spath action | dedup httpRequest.clientIp | search action=BLOCK</query>
-      </search>
+      <choice value="*">ALL</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
       <fieldForLabel>httpRequest.clientIp</fieldForLabel>
       <fieldForValue>httpRequest.clientIp</fieldForValue>
-      <choice value="*">ALL</choice>
-      <initialValue>*</initialValue>
-      <default>*</default>
+      <search base="base_search">
+        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$client_ip$" | spath action | dedup httpRequest.clientIp | search action=BLOCK</query>
+        <earliest>0</earliest>
+        <latest></latest>
+      </search>
     </input>
     <input type="time" token="time" searchWhenChanged="true">
-      <label>Quick select</label>
+      <label>Quick Search</label>
       <default>
-        <earliest>-24h@h</earliest>
-        <latest>now</latest>
+        <earliest>rt-30m</earliest>
+        <latest>rt</latest>
       </default>
     </input>
   </fieldset>
   <row>
     <panel>
-      <map>
-        <title>Map View</title>
-        <search base="base_search">
-          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$" | iplocation httpRequest.clientIp | geostats latfield=lat longfield=lon count</query>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="mapping.choroplethLayer.colorBins">9</option>
-        <option name="mapping.choroplethLayer.colorMode">categorical</option>
-        <option name="mapping.choroplethLayer.showBorder">1</option>
-        <option name="mapping.legend.placement">bottomright</option>
-        <option name="mapping.map.center">(28,50)</option>
-        <option name="mapping.map.scrollZoom">0</option>
-        <option name="mapping.map.zoom">2</option>
-        <option name="mapping.markerLayer.markerMaxSize">40</option>
-        <option name="mapping.markerLayer.markerOpacity">0.9</option>
-        <option name="mapping.showTiles">1</option>
-        <option name="mapping.tileLayer.maxZoom">19</option>
-        <option name="mapping.tileLayer.url">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
-        <option name="mapping.type">marker</option>
-      </map>
-    </panel>
-  </row>
-  <row>
-    <panel>
+      <title>AWS-WAF Overview</title>
       <single>
         <title>Total Requests</title>
         <search base="base_search">
           <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$" | stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
         </search>
         <option name="colorMode">block</option>
         <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
         <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0x006d9c"]</option>
+        <option name="rangeValues">[0,300,700,1000]</option>
         <option name="underLabel">Total Requests</option>
+        <option name="unitPosition">after</option>
         <option name="useColors">1</option>
       </single>
     </panel>
   </row>
   <row>
     <panel>
-      <chart>
-        <title>Requests Type</title>
+      <map>
+        <title>Map View</title>
         <search base="base_search">
-          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$" | stats count by httpRequest.httpMethod</query>
+          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$"
+          | iplocation httpRequest.clientIp
+          | geostats latfield=lat longfield=lon count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
         </search>
-        <option name="charting.axisTitleX.visibility">visible</option>
-        <option name="charting.axisTitleY.visibility">visible</option>
-        <option name="charting.axisTitleY2.visibility">visible</option>
-        <option name="charting.chart">pie</option>
-        <option name="charting.drilldown">none</option>
-        <option name="charting.legend.placement">right</option>
-        <option name="trellis.enabled">0</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Top URLs</title>
-        <search base="base_search">
-          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$" | stats count by uri_query</query>
-        </search>
-        <option name="charting.axisTitleX.visibility">visible</option>
-        <option name="charting.axisTitleY.visibility">visible</option>
-        <option name="charting.axisTitleY2.visibility">visible</option>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
-        <option name="charting.drilldown">none</option>
-        <option name="charting.legend.placement">right</option>
-      </chart>
+        <option name="drilldown">none</option>
+        <option name="mapping.type">marker</option>
+      </map>
     </panel>
   </row>
   <row>
     <panel>
-      <table>
-        <title>Statistics Table</title>
+      <chart>
+        <title>Request Type</title>
         <search base="base_search">
-          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$" | table action,httpRequest.country,httpRequest.clientIp,url,httpRequest.httpMethod,date_mday,date_month,date_year|</query>
+          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$"
+          | stats count by httpRequest.httpMethod</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
         </search>
-        <option name="drilldown">none</option>
-      </table>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
     </panel>
   </row>
 </form>
