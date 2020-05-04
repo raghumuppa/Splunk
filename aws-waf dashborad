@@ -1,9 +1,9 @@
 <form>
   <label>Aws-Waf</label>
   <search id="base_search">
-    <query>index="aws-waf" | table action,httpRequest.country,httpRequest.clientIp,httpRequest.httpVersion,url,uri_query,httpRequest.httpMethod,date_hour,date_minute,date_second,date_mday,date_month,date_year,http_user_agent
-    | eval full_date = date_mday."/".date_month."/".date_year
-    | eval full_time = date_hour.":".date_minute.":".date_second</query>
+    <query>index="aws-waf" | table _time,action,httpRequest.country,httpRequest.clientIp,httpRequest.httpVersion,url,uri_query,httpRequest.httpMethod,http_user_agent
+    | eval date=strftime(_time, "%d-%m-%Y")
+    | eval time=strftime(_time, "%H:%M:%S.%Q")</query>
     <earliest>$time.earliest$</earliest>
     <latest>$time.latest$</latest>
   </search>
@@ -68,8 +68,8 @@
         <option name="colorMode">block</option>
         <option name="drilldown">none</option>
         <option name="numberPrecision">0</option>
-        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0x006d9c"]</option>
-        <option name="rangeValues">[0,300,700,1000]</option>
+        <option name="rangeColors">["0x53a051","0x006d9c"]</option>
+        <option name="rangeValues">[0]</option>
         <option name="underLabel">Total Requests</option>
         <option name="unitPosition">after</option>
         <option name="useColors">1</option>
@@ -88,6 +88,13 @@
           <latest>$time.latest$</latest>
         </search>
         <option name="drilldown">none</option>
+        <option name="mapping.map.center">(31.05,48.52)</option>
+        <option name="mapping.map.zoom">2</option>
+        <option name="mapping.markerLayer.markerMaxSize">40</option>
+        <option name="mapping.markerLayer.markerOpacity">0.9</option>
+        <option name="mapping.showTiles">1</option>
+        <option name="mapping.tileLayer.maxZoom">19</option>
+        <option name="mapping.tileLayer.url">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
         <option name="mapping.type">marker</option>
       </map>
     </panel>
@@ -105,6 +112,32 @@
         <option name="charting.chart">pie</option>
         <option name="charting.drilldown">none</option>
       </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Top URIs</title>
+        <search base="base_search">
+          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$" | stats count by uri_query</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Statistics Table</title>
+        <search base="base_search">
+          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$"
+          | table httpRequest.country,httpRequest.clientIp,url,httpRequest.httpMethod,time,date</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
     </panel>
   </row>
 </form>
