@@ -7,7 +7,7 @@
     <earliest>$time.earliest$</earliest>
     <latest>$time.latest$</latest>
   </search>
-  <fieldset submitButton="true" autoRun="false">
+  <fieldset submitButton="true" autoRun="true">
     <input type="dropdown" token="country" searchWhenChanged="true">
       <label>Country</label>
       <choice value="*">ALL</choice>
@@ -16,7 +16,8 @@
       <fieldForLabel>httpRequest.country</fieldForLabel>
       <fieldForValue>httpRequest.country</fieldForValue>
       <search base="base_search">
-        <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" | stats count by httpRequest.country</query>
+        <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$"
+        | stats count by httpRequest.country</query>
       </search>
     </input>
     <input type="dropdown" token="client_ip" searchWhenChanged="true">
@@ -27,7 +28,8 @@
       <fieldForLabel>httpRequest.clientIp</fieldForLabel>
       <fieldForValue>httpRequest.clientIp</fieldForValue>
       <search base="base_search">
-        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$blocked_ip$" | stats count by httpRequest.clientIp</query>
+        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$blocked_ip$"
+        | stats count by httpRequest.clientIp</query>
       </search>
     </input>
     <input type="dropdown" token="blocked_ip" searchWhenChanged="true">
@@ -38,10 +40,12 @@
       <fieldForLabel>httpRequest.clientIp</fieldForLabel>
       <fieldForValue>httpRequest.clientIp</fieldForValue>
       <search base="base_search">
-        <query>| search httpRequest.clientIp="$client_ip$" httpRequest.country="$country$" | search action=block | stats count by httpRequest.clientIp</query>
+        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$client_ip$"
+        | dedup httpRequest.clientIp 
+        | search action=block</query>
       </search>
     </input>
-    <input type="time" token="time" searchWhenChanged="false">
+    <input type="time" token="time" searchWhenChanged="true">
       <label>Quick Search</label>
       <default>
         <earliest>rt-30m</earliest>
@@ -55,7 +59,7 @@
       <single>
         <title>Total Requests</title>
         <search base="base_search">
-          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$" | stats count</query>
+          <query>| search httpRequest.country="$country$" httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" | stats count</query>
         </search>
         <option name="colorMode">block</option>
         <option name="drilldown">none</option>
@@ -73,7 +77,7 @@
       <map>
         <title>Map View</title>
         <search base="base_search">
-          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$"
+          <query>| search httpRequest.country="$country$" httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$"
           | iplocation httpRequest.clientIp
           | geostats latfield=lat longfield=lon count</query>
         </search>
@@ -94,7 +98,7 @@
       <chart>
         <title>Request Type</title>
         <search base="base_search">
-          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$"
+          <query>| search httpRequest.country="$country$" httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$"
           | stats count by httpRequest.httpMethod</query>
         </search>
         <option name="charting.chart">pie</option>
@@ -105,7 +109,7 @@
       <chart>
         <title>Top URIs</title>
         <search base="base_search">
-          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$" | stats count by uri_query</query>
+          <query>| search httpRequest.country="$country$" httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" | stats count by uri_query</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.drilldown">none</option>
@@ -117,8 +121,8 @@
       <table>
         <title>Statistics Table</title>
         <search base="base_search">
-          <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$"
-          | table httpRequest.country,httpRequest.clientIp,url,httpRequest.httpMethod,time,date</query>
+          <query>| search httpRequest.country="$country$" httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$"
+          | table httpRequest.country,action,httpRequest.clientIp,url,httpRequest.httpMethod,time,date</query>
         </search>
         <option name="drilldown">none</option>
       </table>
