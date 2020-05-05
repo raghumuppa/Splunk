@@ -7,7 +7,7 @@
     <earliest>$time.earliest$</earliest>
     <latest>$time.latest$</latest>
   </search>
-  <fieldset submitButton="true" autoRun="true">
+  <fieldset submitButton="true" autoRun="false">
     <input type="dropdown" token="country" searchWhenChanged="true">
       <label>Country</label>
       <choice value="*">ALL</choice>
@@ -17,8 +17,6 @@
       <fieldForValue>httpRequest.country</fieldForValue>
       <search base="base_search">
         <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" | stats count by httpRequest.country</query>
-        <earliest>0</earliest>
-        <latest></latest>
       </search>
     </input>
     <input type="dropdown" token="client_ip" searchWhenChanged="true">
@@ -29,9 +27,7 @@
       <fieldForLabel>httpRequest.clientIp</fieldForLabel>
       <fieldForValue>httpRequest.clientIp</fieldForValue>
       <search base="base_search">
-        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$blocked_ip$" | dedup httpRequest.clientIp | stats count by httpRequest.clientIp</query>
-        <earliest>0</earliest>
-        <latest></latest>
+        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$blocked_ip$" | stats count by httpRequest.clientIp</query>
       </search>
     </input>
     <input type="dropdown" token="blocked_ip" searchWhenChanged="true">
@@ -42,12 +38,10 @@
       <fieldForLabel>httpRequest.clientIp</fieldForLabel>
       <fieldForValue>httpRequest.clientIp</fieldForValue>
       <search base="base_search">
-        <query>| search httpRequest.country="$country$" httpRequest.clientIp="$client_ip$" | spath action | dedup httpRequest.clientIp | search action=BLOCK</query>
-        <earliest>0</earliest>
-        <latest></latest>
+        <query>| search httpRequest.clientIp="$client_ip$" httpRequest.country="$country$" | search action=block | stats count by httpRequest.clientIp</query>
       </search>
     </input>
-    <input type="time" token="time" searchWhenChanged="true">
+    <input type="time" token="time" searchWhenChanged="false">
       <label>Quick Search</label>
       <default>
         <earliest>rt-30m</earliest>
@@ -62,8 +56,6 @@
         <title>Total Requests</title>
         <search base="base_search">
           <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$" | stats count</query>
-          <earliest>$time.earliest$</earliest>
-          <latest>$time.latest$</latest>
         </search>
         <option name="colorMode">block</option>
         <option name="drilldown">none</option>
@@ -84,8 +76,6 @@
           <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$"
           | iplocation httpRequest.clientIp
           | geostats latfield=lat longfield=lon count</query>
-          <earliest>$time.earliest$</earliest>
-          <latest>$time.latest$</latest>
         </search>
         <option name="drilldown">none</option>
         <option name="mapping.map.center">(31.05,48.52)</option>
@@ -106,8 +96,6 @@
         <search base="base_search">
           <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$"
           | stats count by httpRequest.httpMethod</query>
-          <earliest>$time.earliest$</earliest>
-          <latest>$time.latest$</latest>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.drilldown">none</option>
@@ -118,8 +106,6 @@
         <title>Top URIs</title>
         <search base="base_search">
           <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$" | stats count by uri_query</query>
-          <earliest>$time.earliest$</earliest>
-          <latest>$time.latest$</latest>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.drilldown">none</option>
@@ -133,8 +119,6 @@
         <search base="base_search">
           <query>| search httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$" httpRequest.country="$country$"
           | table httpRequest.country,httpRequest.clientIp,url,httpRequest.httpMethod,time,date</query>
-          <earliest>$time.earliest$</earliest>
-          <latest>$time.latest$</latest>
         </search>
         <option name="drilldown">none</option>
       </table>
