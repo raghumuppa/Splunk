@@ -79,15 +79,18 @@
         <search base="base_search">
           <query>| search httpRequest.country="$country$" httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$"
           | iplocation httpRequest.clientIp
-          | geostats latfield=lat longfield=lon count</query>
+          | geostats latfield=lat longfield=lon count by httpRequest.country</query>
         </search>
         <option name="drilldown">none</option>
-        <option name="mapping.map.center">(31.05,48.52)</option>
+        <option name="mapping.data.maxClusters">100</option>
+        <option name="mapping.map.center">(28,48.52)</option>
         <option name="mapping.map.zoom">2</option>
         <option name="mapping.markerLayer.markerMaxSize">40</option>
+        <option name="mapping.markerLayer.markerMinSize">20</option>
         <option name="mapping.markerLayer.markerOpacity">0.9</option>
         <option name="mapping.showTiles">1</option>
         <option name="mapping.tileLayer.maxZoom">19</option>
+        <option name="mapping.tileLayer.tileOpacity">1</option>
         <option name="mapping.tileLayer.url">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
         <option name="mapping.type">marker</option>
       </map>
