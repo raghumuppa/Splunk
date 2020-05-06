@@ -48,8 +48,8 @@
     <input type="time" token="time" searchWhenChanged="true">
       <label>Quick Search</label>
       <default>
-        <earliest>rt-30m</earliest>
-        <latest>rt</latest>
+        <earliest>-15m</earliest>
+        <latest>now</latest>
       </default>
     </input>
   </fieldset>
@@ -74,26 +74,22 @@
   </row>
   <row>
     <panel>
-      <map>
+      <viz type="missile_map.missile_map">
         <title>Map View</title>
         <search base="base_search">
           <query>| search httpRequest.country="$country$" httpRequest.clientIp="$client_ip$" httpRequest.clientIp="$blocked_ip$"
-          | iplocation httpRequest.clientIp
-          | geostats latfield=lat longfield=lon count by httpRequest.country</query>
+          | dedup httpRequest.clientIp | iplocation httpRequest.clientIp
+          | eval start_lat=lat, start_lon=lon, end_lat=26.165749, end_lon=50.544939, animate="yes", pulse_at_start="yes"</query>
         </search>
         <option name="drilldown">none</option>
-        <option name="mapping.data.maxClusters">100</option>
-        <option name="mapping.map.center">(28,48.52)</option>
-        <option name="mapping.map.zoom">2</option>
-        <option name="mapping.markerLayer.markerMaxSize">40</option>
-        <option name="mapping.markerLayer.markerMinSize">20</option>
-        <option name="mapping.markerLayer.markerOpacity">0.9</option>
-        <option name="mapping.showTiles">1</option>
-        <option name="mapping.tileLayer.maxZoom">19</option>
-        <option name="mapping.tileLayer.tileOpacity">1</option>
-        <option name="mapping.tileLayer.url">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
-        <option name="mapping.type">marker</option>
-      </map>
+        <option name="missile_map.missile_map.lineThickness">1</option>
+        <option name="missile_map.missile_map.mapLatitude">30</option>
+        <option name="missile_map.missile_map.mapLongitude">40</option>
+        <option name="missile_map.missile_map.mapZoom">2.5</option>
+        <option name="missile_map.missile_map.staticColor">#53a051</option>
+        <option name="missile_map.missile_map.tileSet">splunk</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
     </panel>
   </row>
   <row>
